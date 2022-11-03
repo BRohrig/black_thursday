@@ -29,15 +29,17 @@ class InvoiceItemRepository
   end
 
   def create(attributes)
-    all << InvoiceItem.new({  
-      :id           => next_id,
-      :item_id      => attributes[:item_id],
-      :invoice_id   => attributes[:invoice_id],
-      :quantity     => attributes[:quantity],
-      :unit_price   => attributes[:unit_price],
-      :created_at   => attributes[:created_at],
-      :updated_at   => attributes[:updated_at]
-    })
+    InvoiceItem.new(attributes) # I think this should work, its running into an issue in invoice item as it does
+                                # understand the method [] which im confused by.
+    # all << InvoiceItem.new({  
+    #   :id           => attributes[:id],
+    #   :item_id      => attributes[:item_id],
+    #   :invoice_id   => attributes[:invoice_id],
+    #   :quantity     => attributes[:quantity],
+    #   :unit_price   => attributes[:unit_price],
+    #   :created_at   => attributes[:created_at],
+    #   :updated_at   => attributes[:updated_at]
+    # })
   end
 
   def inspect

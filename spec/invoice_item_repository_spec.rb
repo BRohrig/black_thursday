@@ -42,7 +42,7 @@ RSpec.describe InvoiceItemRepository do
     expect(invoice_item_repository.find_all_by_invoice_id(8)).to be {invoice_item}
   end
 
-  xit 'can create a repository' do
+  it 'can create a repository' do
     expect(invoice_item_repository.create(invoice_item)).to be_a {InvoiceItem}
   end
 end
