@@ -89,9 +89,14 @@ RSpec.describe SalesAnalyst do
     end
   end
 
-  describe '#merchants_used_by_customer' do
-    it 'returns an array of merchants the customer has used' do
-
+  describe '#one_time_buyers' do
+    it 'returns an array of customers that only have one invoice' do
+      expected = sales_analyst.customers.find_by_id(27)
+      expect(sales_analyst.one_time_buyers[0]).to eq(expected)
+      expected = sales_analyst.customers.find_by_id(61)
+      expect(sales_analyst.one_time_buyers[1]).to eq(expected)
+      expected = sales_analyst.customers.find_by_id(77)
+      expect(sales_analyst.one_time_buyers[2]).to eq(expected)
     end
   end
 

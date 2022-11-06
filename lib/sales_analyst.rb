@@ -91,6 +91,12 @@ class SalesAnalyst
     @merchants.find_by_id(merchant_id)
   end
 
+  def one_time_buyers
+    @customers.all.find_all do |cust|
+      customer_invoices(cust.id).count == 1
+    end
+  end
+
   # Helper methods
 
   def find_customer_by_id(cust_id)
