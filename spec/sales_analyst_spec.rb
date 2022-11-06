@@ -1,6 +1,7 @@
 require './lib/sales_analyst'
 require './lib/sales_engine'
 require './lib/item_repository'
+require './lib/merchant_repository'
 require './lib/invoice_item_repository'
 require './lib/customer_repository'
 
@@ -78,6 +79,19 @@ RSpec.describe SalesAnalyst do
         sales_analyst.find_customer_by_id(cust)
       end
       expect(sales_analyst.top_buyers).to eq(expected)
+    end
+  end
+
+  describe '#top_merchant_for_customer' do
+    it 'returns the merchant a customer has spent the most with' do
+      expected = sales_analyst.merchants.find_by_id(1)
+      expect(sales_analyst.top_merchant_for_customer(1)).to eq(expected)
+    end
+  end
+
+  describe '#merchants_used_by_customer' do
+    it 'returns an array of merchants the customer has used' do
+
     end
   end
 

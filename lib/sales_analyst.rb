@@ -78,6 +78,19 @@ class SalesAnalyst
     end.reverse![0..num_buyers-1]
   end
 
+  def top_merchant_for_customer(cust_id)
+    hash = {}
+    customer_invoices(cust_id).each do |cust_inv|
+      if hash[cust_inv.merchant_id]
+        hash[cust_inv.merchant_id] += invoice_revenue(cust_inv.id)
+      else
+        hash[cust_inv.merchant_id] = invoice_revenue(cust_inv.id)
+      end
+    end
+    merchant_id = hash.max_by {|k,v| v}[0]
+    @merchants.find_by_id(merchant_id)
+  end
+
   # Helper methods
 
   def find_customer_by_id(cust_id)
@@ -88,7 +101,7 @@ class SalesAnalyst
 
   def customer_spent(cust_id)
     customer_invoices(cust_id).sum do |cust_inv|
-      invoice_paid_in_full?(cust_inv.id) ? invoice_revenue(cust_inv.id) : 0
+      invoice_revenue(cust_inv.id)
     end
   end
 
@@ -99,8 +112,12 @@ class SalesAnalyst
   end
 
   def invoice_revenue(invoice_id)
-    invoice_items_by_invoice_id(invoice_id).sum do |invoice_item|
-      invoice_item.quantity * invoice_item.unit_price
+    if invoice_paid_in_full?(invoice_id)
+      invoice_items_by_invoice_id(invoice_id).sum do |invoice_item|
+        invoice_item.quantity * invoice_item.unit_price
+      end
+    else
+      0
     end
   end
 
