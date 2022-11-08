@@ -101,33 +101,37 @@ RSpec.describe SalesAnalyst do
   describe '#top_buyers' do
     it 'returns the top x buyers' do
       expected = [313,517,148,370,478].map do |cust| 
-        sales_analyst.find_customer_by_id(cust)
+        sales_analyst.customers.find_by_id(cust)
       end
       expect(sales_analyst.top_buyers(5)).to eq(expected)
     end
     it 'returns the top 20 buyers by default' do
-      expected = [
-                  313,517,148,370,478,
-                  266,596,802,793,571,
-                  655,433, 5 ,755,258,
-                  888,821,274,954,250               
-                  ].map do |cust| 
-        sales_analyst.find_customer_by_id(cust)
-      end
-      expect(sales_analyst.top_buyers).to eq(expected)
+      # expected = [
+      #             313,517,148,370,478,
+      #             266,596,802,793,571,
+      #             655,433, 5 ,755,258,
+      #             888,821,274,954,250               
+      #             ].map do |cust| 
+      #   sales_analyst.customers.find_by_id(cust)
+      # end
+      # expect(sales_analyst.top_buyers).to eq(expected)
+      expect(sales_analyst.top_buyers[0]).to eq sales_analyst.customers.find_by_id(313)
     end
   end
 
   describe '#top_merchant_for_customer' do
     it 'returns the merchant a customer has spent the most with' do
-      expected = sales_analyst.merchants.find_by_id(1)
+      expected = sales_analyst.merchants.find_by_id(12337139)
+
       expect(sales_analyst.top_merchant_for_customer(1)).to eq(expected)
+    end
+    it 'returns nil if a customer has not spent money yet' do
+      expect(sales_analyst.top_merchant_for_customer(77)).to eq nil
     end
   end
 
   describe '#one_time_buyers' do
     it 'returns an array of customers that only have one invoice' do
-      require 'pry'; binding.pry
       expected = sales_analyst.customers.find_by_id(27)
       expect(sales_analyst.one_time_buyers[0]).to eq(expected)
 
@@ -139,22 +143,44 @@ RSpec.describe SalesAnalyst do
     end
   end
 
-  describe '#one_time_buyers_item' do
+  describe '#one_time_buyers_top_item' do
     it 'returns the item most commonly bought by one time buyers' do
-      expected = []
+      expected = sales_analyst.items.find_by_id(263396463)
 
-      expect(sales_analyst.one_time_buyers_item).to eq(expected)
+      expect(sales_analyst.one_time_buyers_top_item).to eq(expected)
+    end
+  end
+
+  # Helper methods
+  describe '#one_time_buyers_item_tally' do
+    it 'returns a hash of quantity purchased by item for one time buyers' do
+      expect(sales_analyst.one_time_buyers_item_tally.keys.first).to eq(263512652)
+      expect(sales_analyst.one_time_buyers_item_tally.values.first).to eq(14)
+      expect(sales_analyst.one_time_buyers_item_tally.keys.last).to eq(263519844)
+      expect(sales_analyst.one_time_buyers_item_tally.values.last).to eq(1)
+    end
+  end
+
+  describe '#spent_per_merchant' do
+    it 'returns a hash of how much a customer spent per merchant_id' do
+      expect(sales_analyst.spent_per_merchant(1).keys.first).to eq(12335938)
+      expect(sales_analyst.spent_per_merchant(1).values.first).to eq(0.2106777e5)
+      expect(sales_analyst.spent_per_merchant(1).keys.last).to eq(12337139)
+      expect(sales_analyst.spent_per_merchant(1).values.last).to eq(0.2477652e5)
+    end
+
+    it 'only contains merchants the customer spent money at' do
+      expect(sales_analyst.spent_per_merchant(1).has_value?(0)).to be false
     end
   end
 
   describe '#find_item_numbers_by_invoice_id' do
     it 'returns an array of every item number on an invoice' do
       expected = sales_analyst.find_item_numbers_by_invoice_id(136)
-require 'pry'; binding.pry
-      expect(expected[0]).to eq 263512652
-      expect(expected[1]).to eq 263401045
-      expect(expected[2]).to eq 263410155
-      expect(expected[3]).to eq 263434165
+      # require 'pry'; binding.pry
+
+      expect(expected[0..9].count(263512652)).to eq 10
+      expect(expected[10]).to eq 263401045
     end
   end
 
@@ -166,13 +192,6 @@ require 'pry'; binding.pry
       expect(expected[1].id).to eq 641
       expect(expected[2].id).to eq 642
       expect(expected[3].id).to eq 643
-    end
-  end
-
-  describe '#find_customer_by_id' do
-    it 'returns a Customer object matching given id' do
-      expected = sales_analyst.find_customer_by_id(1)
-      expect(expected).to eq sales_analyst.customers.all[0]
     end
   end
 
@@ -264,7 +283,7 @@ require 'pry'; binding.pry
     it 'returns merchants whose average # of invoices <1 stdev' do
     avg = sales_analyst.average_invoices_per_merchant
     stdev = sales_analyst.average_invoices_per_merchant_standard_deviation
-    require 'pry'; binding.pry
+
     # 12334235, 12334601, 12335000, 12335560
     expect(
       sales_analyst.bottom_merchants_by_invoice_count.all? {
