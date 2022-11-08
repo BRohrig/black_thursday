@@ -241,19 +241,39 @@ RSpec.describe SalesAnalyst do
     end
   end
 
-  # describe '#invoice_days_count' do
-  #   it 'returns an array of invoice counts from sunday..saturday' do
+  describe '#invoice_days_count' do
+    it 'returns an array of invoice counts from sunday..saturday' do
 
-  #     expect(sales_analyst.invoice_days_count).to eq [708, 696, 692, 741, 718, 701, 729]
-  #   end
-  # end
+      x = {
+        sunday:     sales_analyst.invoices_days_of_week.count(0),
+        monday:     sales_analyst.invoices_days_of_week.count(1),
+        tuesday:    sales_analyst.invoices_days_of_week.count(2),
+        wednesday:  sales_analyst.invoices_days_of_week.count(3),
+        thursday:   sales_analyst.invoices_days_of_week.count(4),
+        friday:     sales_analyst.invoices_days_of_week.count(5),
+        saturday:   sales_analyst.invoices_days_of_week.count(6)
+      }
+
+      expect(sales_analyst.invoice_days_count).to eq x
+    end
+  end
 
   describe '#invoice_days_count' do #MS
     it 'returns an array of invoice counts from sunday..saturday' do
       s_a = double("sales analyst")
 
-      allow(s_a).to receive(:average_invoices_per_week_standard_deviation).and_return([708, 696, 692, 741, 718, 701, 729])
-      expect(s_a.average_invoices_per_week_standard_deviation).to eq [708, 696, 692, 741, 718, 701, 729]
+      x = {
+        sunday:     708,
+        monday:     696,
+        tuesday:    692,
+        wednesday:  741,
+        thursday:   718,
+        friday:     701,
+        saturday:   729
+      }
+
+      allow(s_a).to receive(:invoice_days_count).and_return(x)
+      expect(s_a.invoice_days_count).to eq x
     end
   end
 
@@ -433,12 +453,6 @@ end
       expect(sales_analyst.revenue_by_merchant(12337411).class).to eq BigDecimal
     end
   end
-
-  # describe '#most_sold_item_for_merchant' do
-  #   xit 'returns the most sold item' do
-  #     expect(sales_analyst.most_sold_item_for_merchant(merchant_id)).to eq [item]
-  #   end
-  # end
 
   describe '#paid_invoice_items_by_merchant' do
     it 'returns only paid invoice items' do

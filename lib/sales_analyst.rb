@@ -17,7 +17,12 @@ require_relative './mathable'
 class SalesAnalyst
   include Mathable
   
-  attr_reader :merchants, :items, :invoices, :customers, :transactions, :invoice_items
+  attr_reader :merchants, 
+              :items, 
+              :invoices, 
+              :customers, 
+              :transactions, 
+              :invoice_items
 
   def initialize(merchants,items,invoices,invoice_items,customers,transactions)
     @merchants = merchants
@@ -162,29 +167,41 @@ class SalesAnalyst
     end
   end
 
+  # def invoice_days_count
+  #   # [708, 696, 692, 741, 718, 701, 729]
+  #   days_count = []
+  #   days_count << invoices_days_of_week.count(0)
+  #   days_count << invoices_days_of_week.count(1)
+  #   days_count << invoices_days_of_week.count(2)
+  #   days_count << invoices_days_of_week.count(3)
+  #   days_count << invoices_days_of_week.count(4)
+  #   days_count << invoices_days_of_week.count(5)
+  #   days_count << invoices_days_of_week.count(6)
+  #   days_count
+  # end
+
   def invoice_days_count
-    # [708, 696, 692, 741, 718, 701, 729]
-    days_count = []
-    days_count << invoices_days_of_week.count(0)
-    days_count << invoices_days_of_week.count(1)
-    days_count << invoices_days_of_week.count(2)
-    days_count << invoices_days_of_week.count(3)
-    days_count << invoices_days_of_week.count(4)
-    days_count << invoices_days_of_week.count(5)
-    days_count << invoices_days_of_week.count(6)
-    days_count
+    {
+      sunday:     invoices_days_of_week.count(0),
+      monday:     invoices_days_of_week.count(1),
+      tuesday:    invoices_days_of_week.count(2),
+      wednesday:  invoices_days_of_week.count(3),
+      thursday:   invoices_days_of_week.count(4),
+      friday:     invoices_days_of_week.count(5),
+      saturday:   invoices_days_of_week.count(6)
+    }
   end
 
   def average_invoices_per_day
-  (invoice_days_count.sum / 7.0).round(2)
+  (invoice_days_count.values.sum / 7.0).round(2)
   end
 
   def average_invoices_per_week_standard_deviation
-    Math.sqrt(invoice_week_sum_diff_square / (invoice_days_count.length - 1)).round(2)
+    Math.sqrt(invoice_week_sum_diff_square / (invoice_days_count.keys.length - 1)).round(2)
   end
 
   def invoice_week_sum_diff_square
-    invoice_days_count.map do |count|
+    invoice_days_count.values.map do |count|
       (count - average_invoices_per_day)**2
     end.sum
   end
@@ -193,18 +210,9 @@ class SalesAnalyst
     average_invoices_per_week_standard_deviation + average_invoices_per_day
   end
 
-  def top_days_by_invoice_count # refactor with group_by, possibly refactor invoice_days_count to hash?
+  def top_days_by_invoice_count
     days_of_week = []
-    array = invoice_days_count
-    hash = {
-      sunday:     array[0],
-      monday:     array[1],
-      tuesday:    array[2],
-      wednesday:  array[3],
-      thursday:   array[4],
-      friday:     array[5],
-      saturday:   array[6]
-            }
+    hash = invoice_days_count
     hash.each do |day, count|
       if count > one_over_standard_dev
          days_of_week << day.to_s.capitalize
@@ -212,6 +220,26 @@ class SalesAnalyst
     end
     days_of_week
   end
+
+  # def top_days_by_invoice_count # refactor with group_by, possibly refactor invoice_days_count to hash?
+  #   days_of_week = []
+  #   array = invoice_days_count
+  #   hash = {
+  #     sunday:     array[0],
+  #     monday:     array[1],
+  #     tuesday:    array[2],
+  #     wednesday:  array[3],
+  #     thursday:   array[4],
+  #     friday:     array[5],
+  #     saturday:   array[6]
+  #           }
+  #   hash.each do |day, count|
+  #     if count > one_over_standard_dev
+  #        days_of_week << day.to_s.capitalize
+  #     end
+  #   end
+  #   days_of_week
+  # end
 
   def find_transactions_by_invoice_id(invoice_id) # there can be multiple transactions per invoice
     transactions.all.find_all do |transaction|
@@ -232,10 +260,9 @@ class SalesAnalyst
   end
 
   def invoice_total(invoice_id)
-
     ii = find_invoice_item_by_invoice_id(invoice_id)
     ii.collect do |i|
-      if invoice_paid_in_full?(invoice_id)
+      if invoice_paid_in_full?(invoice_id) 
       i.quantity.to_i * i.unit_price
       else
         0
@@ -261,9 +288,8 @@ class SalesAnalyst
     end
   end
 
-  def total_merchant_revenue(merchant_id)
+  def total_merchant_revenue(merchant_id) 
     total = 0 
-    total_h = {}
     x = @invoices.find_all_by_merchant_id(merchant_id)
     x.each do |invoice|
       if invoice_paid_in_full?(invoice.id)
@@ -273,6 +299,16 @@ class SalesAnalyst
     total.round(2)
   end
 
+  # def total_merchant_revenue(merchant_id) #refactor?
+  #   # total = 0 
+  #   x = @invoices.find_all_by_merchant_id(merchant_id)
+  #   total = x.sum do |invoice|
+  #     binding.pry
+  #       invoice_total(invoice.id) if invoice_paid_in_full?(invoice.id)
+  #   end
+  #   total.round(2)
+  # end
+
   def top_revenue_earners(rank = 20)
     merchants.all.max_by(rank) do |merchant|
       total_merchant_revenue(merchant.id)
@@ -280,19 +316,22 @@ class SalesAnalyst
   end
 
   def pending_invoices
-    pending_invoices = []
-    invoices.all.each do |invoice|
-      if (invoice.status != :shipped || :returned) && !invoice_paid_in_full?(invoice.id)
-        pending_invoices << invoice
-      end
-    end.uniq
-    pending_invoices2 = pending_invoices.map do |invoice|
+      pending_invoices = invoices.all.select do |invoice|
+         (invoice.status != :shipped || :returned) && !invoice_paid_in_full?(invoice.id)
+      end.uniq
+    pending_invoices
+  end
+
+  def find_merchant_ids_with_pending_invoices
+    pi = pending_invoices
+    pi.map do |invoice|
       invoice.merchant_id
       end.uniq
   end
 
   def merchants_with_pending_invoices
-    pending_invoices.map do |merchant_id|
+    merchants_with_pi = find_merchant_ids_with_pending_invoices
+    merchants_with_pi.map do |merchant_id|
       @merchants.find_by_id(merchant_id)
     end
   end  
