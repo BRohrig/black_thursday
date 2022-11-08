@@ -127,7 +127,7 @@ RSpec.describe SalesAnalyst do
 
   describe '#one_time_buyers' do
     it 'returns an array of customers that only have one invoice' do
-      require 'pry'; binding.pry
+      require 'pry'; binding.pry 
       expected = sales_analyst.customers.find_by_id(27)
       expect(sales_analyst.one_time_buyers[0]).to eq(expected)
 
