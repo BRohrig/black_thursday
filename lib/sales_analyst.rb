@@ -260,10 +260,9 @@ class SalesAnalyst
   end
 
   def invoice_total(invoice_id)
-
     ii = find_invoice_item_by_invoice_id(invoice_id)
     ii.collect do |i|
-      if invoice_paid_in_full?(invoice_id)
+      if invoice_paid_in_full?(invoice_id) 
       i.quantity.to_i * i.unit_price
       else
         0
@@ -289,7 +288,7 @@ class SalesAnalyst
     end
   end
 
-  def total_merchant_revenue(merchant_id) #refactor?
+  def total_merchant_revenue(merchant_id) 
     total = 0 
     x = @invoices.find_all_by_merchant_id(merchant_id)
     x.each do |invoice|
@@ -299,6 +298,16 @@ class SalesAnalyst
     end
     total.round(2)
   end
+
+  # def total_merchant_revenue(merchant_id) #refactor?
+  #   # total = 0 
+  #   x = @invoices.find_all_by_merchant_id(merchant_id)
+  #   total = x.sum do |invoice|
+  #     binding.pry
+  #       invoice_total(invoice.id) if invoice_paid_in_full?(invoice.id)
+  #   end
+  #   total.round(2)
+  # end
 
   def top_revenue_earners(rank = 20)
     merchants.all.max_by(rank) do |merchant|
