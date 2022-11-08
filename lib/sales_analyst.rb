@@ -83,17 +83,63 @@ class SalesAnalyst
     end.reverse![0..num_buyers-1]
   end
 
+  def top_merchant_for_customer(cust_id)
+    hash = {}
+    customer_invoices(cust_id).each do |cust_inv|
+      if hash[cust_inv.merchant_id]
+        hash[cust_inv.merchant_id] += invoice_revenue(cust_inv.id)
+      else
+        hash[cust_inv.merchant_id] = invoice_revenue(cust_inv.id)
+      end
+    end
+    merchant_id = hash.max_by {|k,v| v}[0]
+    @merchants.find_by_id(merchant_id)
+  end
+
+  def one_time_buyers
+    otb = @customers.all.find_all do |cust|
+      customer_invoices(cust.id).count == 1
+    end
+    otb.find_all do |buyer|
+      invoice_paid_in_full?(customer_invoices(buyer.id)[0].id)
+    end
+  end
+
+  def one_time_buyers_item
+    item_numbers = []
+    one_time_buyers.each do |cust|
+      invoice_id = customer_invoices(cust.id)[0].id
+      item_numbers += find_item_numbers_by_invoice_id(invoice_id)
+    end
+    # require 'pry'; binding.pry
+    item_numbers.tally.max_by {|item,value| value}
+  end
+
   # Helper methods
 
-  def find_customer_by_id(cust_id)
+  def find_item_numbers_by_invoice_id(id)
+    item_numbers = []
+    find_invoice_items_by_invoice_id(id).each do |inv_item|
+      item_numbers += Array.new(inv_item.quantity,items.find_by_id(inv_item.item_id).id)
+    end
+    item_numbers
+  end
+
+  def find_invoice_items_by_invoice_id(id)
+    invoice_items.all.find_all do |inv_item|
+      inv_item.invoice_id == id
+    end
+  end
+
+  def find_customer_by_id(id)
     @customers.all.find do |cust|
-      cust.id == cust_id
+      cust.id == id
     end
   end
 
   def customer_spent(cust_id)
     customer_invoices(cust_id).sum do |cust_inv|
-      invoice_paid_in_full?(cust_inv.id) ? invoice_revenue(cust_inv.id) : 0
+      invoice_revenue(cust_inv.id)
     end
   end
 
@@ -104,8 +150,12 @@ class SalesAnalyst
   end
 
   def invoice_revenue(invoice_id)
-    invoice_items_by_invoice_id(invoice_id).sum do |invoice_item|
-      invoice_item.quantity * invoice_item.unit_price
+    if invoice_paid_in_full?(invoice_id)
+      invoice_items_by_invoice_id(invoice_id).sum do |invoice_item|
+        invoice_item.quantity * invoice_item.unit_price
+      end
+    else
+      0
     end
   end
 
