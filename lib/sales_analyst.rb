@@ -226,7 +226,6 @@ class SalesAnalyst
   end
 
   def average_invoices_per_day
-    # binding.pry
   (invoice_days_count.sum / 7.0).round(2)
   end
 
@@ -270,7 +269,6 @@ class SalesAnalyst
     end
   end
 
-
   def invoice_paid_in_full?(invoice_id)
     find_transactions_by_invoice_id(invoice_id).any? do |transaction|
       transaction.result == :success
@@ -295,27 +293,22 @@ class SalesAnalyst
     end.sum
   end
   
-
-
   def invoice_status(status)
   invoice_count = invoices.all.select { |invoice| invoice.status == status }
   ((invoice_count.count).to_f / (invoices.all.count) * 100).round(2)
   end
 
-  
-
   def total_revenue_by_date(date)
-    total = 0
-  invoice_items.all.find_all do |item|
-    # binding.pry
-    if item.created_at == date
-      total += item.unit_price
-    end
+    invoice_date = find_i_by_date(date)
+    invoice_date.map do |invoice|
+      invoice_total(invoice.id)
+    end.inject(:+)
   end
-  # total.to_f
-BigDecimal(total, 4)
 
-    
+  def find_i_by_date(date)
+    invoices.all.find_all do |invoice|
+      invoice.created_at.to_date === date.to_date
+    end
   end
 
   def total_merchant_revenue(merchant_id)
@@ -327,32 +320,33 @@ BigDecimal(total, 4)
         total += invoice_total(invoice.id)
       end
     end
-    # x.group_by do |merchant|
     total.round(2)
-    # # binding.pry
-    # end
   end
-
-
 
   def top_revenue_earners(rank = 20)
-    # binding.pry
-    # ranked_sorted_merchants[0..(rank-1)]
-    # binding.pry
-    # (merchant_revenue[0..(rank-1)]).reverse
-    x = merchants.all.max_by(rank) do |merchant|
+    merchants.all.max_by(rank) do |merchant|
       total_merchant_revenue(merchant.id)
     end
-    
   end
 
-     
-# def merchants_with_pending_invoices
-#     @merchants.all.find_all do |merchant|  maybe possible to go straight to invoices?
-#     merchant.invoices.any? |invoice|      believe any? will skip any that dont have an invoice, think they all do so this could be redundant.
-#     !invoices.is_paid_in_full?            depending on how are paid in full method works? i dont love ! but wasnt sure how else to write it.
-# end
+  def pending_invoices
+    pending_invoices = []
+    invoices.all.each do |invoice|
+      if (invoice.status != :shipped || :returned) && !invoice_paid_in_full?(invoice.id)
+        pending_invoices << invoice
+      end
+    end.uniq
+    pending_invoices2 = pending_invoices.map do |invoice|
+      invoice.merchant_id
+      end.uniq
+  end
 
+  def merchants_with_pending_invoices
+    pending_invoices.map do |merchant_id|
+      @merchants.find_by_id(merchant_id)
+    end
+  end  
+       
   def merchants_with_only_one_item
     @merchants.all.find_all do |merchant|
       @items.find_all_by_merchant_id(merchant.id).count == 1
@@ -360,9 +354,30 @@ BigDecimal(total, 4)
   end
 
   def merchants_with_only_one_item_registered_in_month(month)
+    merchants_with_only_one_item.select do |merchant|
+      month_merchant_created(merchant) == number_month(month)
+    end
   end
 
+  def month_merchant_created(merchant)
+    merchant.created_at.to_date.month
+  end
 
+  def merchant_ids_in_month(month)
+    invoices_in_month(month).map do |invoice|
+      invoice.merchant_id
+    end
+  end
+
+  def number_month(month)
+    Date::MONTHNAMES.find_index(month)
+  end
+
+  def invoices_in_month(month)
+    invoices.all.find_all do |invoice|
+      invoice.created_at.to_date.month == number_month(month)
+    end
+  end
 
   def invoices_by_merchant(merchant_id)
     @invoices.all.find_all do |invoice|
@@ -386,9 +401,34 @@ BigDecimal(total, 4)
   
     
   def most_sold_item_for_merchant(merchant_id)
+    x = find_ii_by_most_sold_item(merchant_id)
+    items.find_by_id(x.item_id)
+  end
+
+  def successful_invoice(merchant_id)
+    invoices_by_merchant(merchant_id).find_all do |invoice|
+      invoice_paid_in_full?(invoice.id)
+    end
+  end
+
+  def find_ii_by_most_sold_item(merchant_id)
+    successful_invoice(merchant_id)
+    invoice_items.all.max_by do |invoice_item|
+      invoice_item.quantity
+    end
+  end
+
+  def paid_invoice_items_by_merchant(merchant_id)
+    paid_invoices = invoice_items_by_merchant(merchant_id).find_all do |invoice_item|
+      invoice_paid_in_full?(invoice_item.invoice_id)
+    end
   end
 
   def best_item_for_merchant(merchant_id)
+    paid_invoices = paid_invoice_items_by_merchant(merchant_id)
+    best_invoice_item = paid_invoices.max_by do |invoice_item|
+      invoice_item.quantity * invoice_item.unit_price
+    end
+    items.find_by_id(best_invoice_item.item_id)
   end
-
 end
