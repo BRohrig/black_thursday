@@ -84,38 +84,41 @@ class SalesAnalyst
   end
 
   def top_merchant_for_customer(cust_id)
-    hash = {}
-    customer_invoices(cust_id).each do |cust_inv|
-      if hash[cust_inv.merchant_id]
-        hash[cust_inv.merchant_id] += invoice_revenue(cust_inv.id)
-      else
-        hash[cust_inv.merchant_id] = invoice_revenue(cust_inv.id)
-      end
-    end
-    merchant_id = hash.max_by {|k,v| v}[0]
+    max_pair = spent_per_merchant(cust_id).max
+    return max_pair if max_pair.nil?
+    merchant_id = max_pair[1] > 0 ? max_pair[0] : nil
     @merchants.find_by_id(merchant_id)
   end
 
   def one_time_buyers
-    otb = @customers.all.find_all do |cust|
+    @customers.all.find_all do |cust|
       customer_invoices(cust.id).count == 1
-    end
-    otb.find_all do |buyer|
-      invoice_paid_in_full?(customer_invoices(buyer.id)[0].id)
     end
   end
 
-  def one_time_buyers_item
-    item_numbers = []
-    one_time_buyers.each do |cust|
-      invoice_id = customer_invoices(cust.id)[0].id
-      item_numbers += find_item_numbers_by_invoice_id(invoice_id)
-    end
-    # require 'pry'; binding.pry
-    item_numbers.tally.max_by {|item,value| value}
+  def one_time_buyers_top_item
+    top_item_number = one_time_buyers_item_tally.max_by {|item,value| value}[0]
+    @items.find_by_id(top_item_number)
   end
 
   # Helper methods
+
+  def one_time_buyers_item_tally
+    item_numbers = []
+    one_time_buyers.each do |cust|
+      invoice_id = customer_invoices(cust.id)[0].id
+      item_numbers += find_item_numbers_by_invoice_id(invoice_id) if invoice_paid_in_full?(invoice_id)
+    end
+    item_numbers.tally
+  end
+
+  def spent_per_merchant(cust_id)
+    spent_per_merchant = Hash.new(0)
+    customer_paid_invoices(cust_id).each do |cust_inv|
+      spent_per_merchant[cust_inv.merchant_id] += invoice_value(cust_inv.id)
+    end
+    spent_per_merchant
+  end
 
   def find_item_numbers_by_invoice_id(id)
     item_numbers = []
@@ -131,21 +134,21 @@ class SalesAnalyst
     end
   end
 
-  def find_customer_by_id(id)
-    @customers.all.find do |cust|
-      cust.id == id
-    end
-  end
-
   def customer_spent(cust_id)
-    customer_invoices(cust_id).sum do |cust_inv|
-      invoice_revenue(cust_inv.id)
+    customer_paid_invoices(cust_id).sum do |cust_inv|
+      invoice_value(cust_inv.id)
     end
   end
 
   def customer_invoices(cust_id)
     @invoices.all.find_all do |invoice|
       invoice.customer_id == cust_id
+    end
+  end
+
+  def customer_paid_invoices(cust_id)
+    @invoices.all.find_all do |invoice|
+      invoice.customer_id == cust_id && invoice_paid_in_full?(invoice.id)
     end
   end
 
@@ -156,6 +159,12 @@ class SalesAnalyst
       end
     else
       0
+    end
+  end
+
+  def invoice_value(invoice_id)
+    invoice_items_by_invoice_id(invoice_id).sum do |invoice_item|
+      invoice_item.quantity * invoice_item.unit_price
     end
   end
 
