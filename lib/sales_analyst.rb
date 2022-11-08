@@ -92,16 +92,43 @@ class SalesAnalyst
   end
 
   def one_time_buyers
-    @customers.all.find_all do |cust|
+    otb = @customers.all.find_all do |cust|
       customer_invoices(cust.id).count == 1
     end
+    otb.find_all do |buyer|
+      invoice_paid_in_full?(customer_invoices(buyer.id)[0].id)
+    end
+  end
+
+  def one_time_buyers_item
+    item_numbers = []
+    one_time_buyers.each do |cust|
+      invoice_id = customer_invoices(cust.id)[0].id
+      item_numbers += find_item_numbers_by_invoice_id(invoice_id)
+    end
+    # require 'pry'; binding.pry
+    item_numbers.tally.max_by {|item,value| value}
   end
 
   # Helper methods
 
-  def find_customer_by_id(cust_id)
+  def find_item_numbers_by_invoice_id(id)
+    item_numbers = []
+    find_invoice_items_by_invoice_id(id).each do |inv_item|
+      item_numbers += Array.new(inv_item.quantity,items.find_by_id(inv_item.item_id).id)
+    end
+    item_numbers
+  end
+
+  def find_invoice_items_by_invoice_id(id)
+    invoice_items.all.find_all do |inv_item|
+      inv_item.invoice_id == id
+    end
+  end
+
+  def find_customer_by_id(id)
     @customers.all.find do |cust|
-      cust.id == cust_id
+      cust.id == id
     end
   end
 

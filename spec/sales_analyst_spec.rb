@@ -91,12 +91,45 @@ RSpec.describe SalesAnalyst do
 
   describe '#one_time_buyers' do
     it 'returns an array of customers that only have one invoice' do
+      require 'pry'; binding.pry
       expected = sales_analyst.customers.find_by_id(27)
       expect(sales_analyst.one_time_buyers[0]).to eq(expected)
+
       expected = sales_analyst.customers.find_by_id(61)
       expect(sales_analyst.one_time_buyers[1]).to eq(expected)
+
       expected = sales_analyst.customers.find_by_id(77)
       expect(sales_analyst.one_time_buyers[2]).to eq(expected)
+    end
+  end
+
+  describe '#one_time_buyers_item' do
+    it 'returns the item most commonly bought by one time buyers' do
+      expected = []
+
+      expect(sales_analyst.one_time_buyers_item).to eq(expected)
+    end
+  end
+
+  describe '#find_item_numbers_by_invoice_id' do
+    it 'returns an array of every item number on an invoice' do
+      expected = sales_analyst.find_item_numbers_by_invoice_id(136)
+require 'pry'; binding.pry
+      expect(expected[0]).to eq 263512652
+      expect(expected[1]).to eq 263401045
+      expect(expected[2]).to eq 263410155
+      expect(expected[3]).to eq 263434165
+    end
+  end
+
+  describe '#find_invoice_items_by_invoice_id' do
+    it 'returns an array of invoice items matching invoice id' do
+      expected = sales_analyst.find_invoice_items_by_invoice_id(136)
+
+      expect(expected[0].id).to eq 640
+      expect(expected[1].id).to eq 641
+      expect(expected[2].id).to eq 642
+      expect(expected[3].id).to eq 643
     end
   end
 
@@ -161,6 +194,8 @@ RSpec.describe SalesAnalyst do
     it 'returns merchants whose average # of invoices <1 stdev' do
     avg = sales_analyst.average_invoices_per_merchant
     stdev = sales_analyst.average_invoices_per_merchant_standard_deviation
+    require 'pry'; binding.pry
+    # 12334235, 12334601, 12335000, 12335560
     expect(
       sales_analyst.bottom_merchants_by_invoice_count.all? {
       |merchant| sales_analyst.invoices.find_all_by_merchant_id(merchant.id).count < avg - (stdev * 2)
