@@ -3,8 +3,7 @@ require 'time'
 class Transaction
   attr_reader :id, 
               :invoice_id,
-              :created_at,
-              :updated_at
+              :created_at
 
   attr_accessor :updated_at,
                 :credit_card_number,
