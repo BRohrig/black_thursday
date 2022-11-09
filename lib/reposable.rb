@@ -9,6 +9,7 @@ module Reposable
             :created_at   => Time.now,
             :updated_at   => Time.now
     }
+    attributes = {name: attributes} if attributes.class == String
     attributes.each do |att,val|
       new[att] = val
     end
@@ -16,6 +17,7 @@ module Reposable
   end
 
   def update(id,attributes)
+    attributes = {name: attributes} if attributes.class == String
     entry = find_by_id(id)
   
     entry.updated_at = Time.now if entry.respond_to?(:updated_at=)
