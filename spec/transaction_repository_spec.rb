@@ -25,6 +25,8 @@ RSpec.describe TransactionRepository do
   end
 
   it "#find_all_by_credit_card_number returns all transactions matching given credit card number" do
+    expect(transaction_repository.find_all_by_credit_card_number("4242424242424242")).to eq []
+  
     transaction_repository.all << transaction
 
     expect(transaction_repository.find_all_by_credit_card_number("4242424242423333")).to eq []
@@ -32,6 +34,8 @@ RSpec.describe TransactionRepository do
   end
 
   it "#find_all_by_result returns all transactions matching given result" do
+    expect(transaction_repository.find_all_by_result(:success)).to eq []
+  
     transaction_repository.all << transaction
 
     expect(transaction_repository.find_all_by_result(:failed)).to eq []
@@ -79,7 +83,6 @@ RSpec.describe TransactionRepository do
                                     :credit_card_expiration_date  => "0230"})
 
     expect(transaction_repository.all[0].id).to eq(6)
-
     expect(transaction_repository.find_by_id(8)).to eq nil
   end
 end

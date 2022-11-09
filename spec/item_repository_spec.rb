@@ -44,6 +44,13 @@ RSpec.describe ItemRepository do
     expect(item_repo).to be_a ItemRepository
   end
 
+  it 'can find by id' do
+    expect(item_repo.find_by_id(5)).to eq nil
+
+    item_repo.all << item1
+    expect(item_repo.find_by_id(1)).to be {item}
+  end
+
   describe '#find_by_name' do
     it 'returns either nil or an instance of Item' do
       expect(item_repo.find_by_name("Pencil")).to be nil
