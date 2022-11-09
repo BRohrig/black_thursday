@@ -51,10 +51,11 @@ RSpec.describe SalesAnalyst do
       avg = sales_analyst.average_items_per_merchant
       stdev = sales_analyst.average_items_per_merchant_standard_deviation
 
-      expect(
-        sales_analyst.merchants_with_high_item_count.all? {
-          |merchant| sales_analyst.items.find_all_by_merchant_id(merchant.id).count > avg + stdev 
-          }).to be true
+      expected = sales_analyst.merchants_with_high_item_count.all? do |merchant|
+        sales_analyst.items.find_all_by_merchant_id(merchant.id).count > avg + stdev
+      end
+
+      expect(expected).to be true
     end
   end
 
@@ -105,17 +106,18 @@ RSpec.describe SalesAnalyst do
       end
       expect(sales_analyst.top_buyers(5)).to eq(expected)
     end
+
     it 'returns the top 20 buyers by default' do
-      # expected = [
-      #             313,517,148,370,478,
-      #             266,596,802,793,571,
-      #             655,433, 5 ,755,258,
-      #             888,821,274,954,250               
-      #             ].map do |cust| 
-      #   sales_analyst.customers.find_by_id(cust)
-      # end
-      # expect(sales_analyst.top_buyers).to eq(expected)
-      expect(sales_analyst.top_buyers[0]).to eq sales_analyst.customers.find_by_id(313)
+      expected = [
+                  313,517,148,370,478,
+                  266,596,802,793,571,
+                  655,433, 5 ,755,258,
+                  888,821,274,954,250               
+                  ].map do |cust| 
+        sales_analyst.customers.find_by_id(cust)
+      end
+
+      expect(sales_analyst.top_buyers).to eq(expected)
     end
   end
 
@@ -125,6 +127,7 @@ RSpec.describe SalesAnalyst do
 
       expect(sales_analyst.top_merchant_for_customer(1)).to eq(expected)
     end
+
     it 'returns nil if a customer has not spent money yet' do
       expect(sales_analyst.top_merchant_for_customer(77)).to eq nil
     end
@@ -151,7 +154,8 @@ RSpec.describe SalesAnalyst do
     end
   end
 
-  # Helper methods
+  # Iteration 4/5 helper methods
+
   describe '#one_time_buyers_item_tally' do
     it 'returns a hash of quantity purchased by item for one time buyers' do
       expect(sales_analyst.one_time_buyers_item_tally.keys.first).to eq(263512652)
@@ -177,7 +181,6 @@ RSpec.describe SalesAnalyst do
   describe '#find_item_numbers_by_invoice_id' do
     it 'returns an array of every item number on an invoice' do
       expected = sales_analyst.find_item_numbers_by_invoice_id(136)
-      # require 'pry'; binding.pry
 
       expect(expected[0..9].count(263512652)).to eq 10
       expect(expected[10]).to eq 263401045
@@ -204,8 +207,17 @@ RSpec.describe SalesAnalyst do
 
   describe '#customer_invoices' do
     it "returns an array of a customer's invoices" do
+      require 'pry'; binding.pry
       expected = sales_analyst.customer_invoices(1)
       expect(expected).to eq(sales_analyst.invoices.all[0..7])
+    end
+  end
+
+  describe '#customer_paid_invoices' do
+    it 'returns an array of invoices which the customer has paid' do
+      unexpected = sales_analyst.customer_invoices(1)[2]
+
+      expect(sales_analyst.customer_paid_invoices(1)).not_to include(unexpected)
     end
   end
 
@@ -232,12 +244,34 @@ RSpec.describe SalesAnalyst do
   #   end
   # end
 
+  describe '#invoice_value' do
+    it 'returns the revenue of invoice if everything sold' do
+      expect(sales_analyst.invoice_value(9)).to eq(4036.08)
+    end
+  end
+
   describe '#invoice_items_by_invoice_id' do
     it 'returns an array of all invoice_items matching invoice id' do
       expected = sales_analyst.invoice_items_by_invoice_id(54)
       expect(expected).to eq(sales_analyst.invoice_items.all[236..238])
     end
   end
+
+  describe '#items_per_merchant' do
+    it 'returns an array of how many items a merchant has' do
+      expect(sales_analyst.items_per_merchant.count).to eq 475
+      expect(sales_analyst.items_per_merchant.sum).to eq 1367
+    end
+  end
+
+  describe '#item_prices' do
+    it 'returns an array of all item prices' do
+      expect(sales_analyst.item_prices.count).to eq 1367
+      expect(sales_analyst.item_prices.sum).to eq 343203.36
+    end
+  end
+
+  # Iteration 2 (Invoices)
 
   describe '#average_invoices_per_merchant' do
     it 'gives how many invoices a merchant has on average' do
@@ -280,23 +314,24 @@ RSpec.describe SalesAnalyst do
     it 'returns merchants whose average # of invoices >2 stdev' do
       avg = sales_analyst.average_invoices_per_merchant
       stdev = sales_analyst.average_invoices_per_merchant_standard_deviation
-      expect(
-        sales_analyst.top_merchants_by_invoice_count.all? {
-        |merchant| sales_analyst.invoices.find_all_by_merchant_id(merchant.id).count > avg + (stdev * 2)
-        }).to be true
+
+      expected = sales_analyst.top_merchants_by_invoice_count.all? do |merchant|
+        sales_analyst.invoices.find_all_by_merchant_id(merchant.id).count > avg + (stdev * 2)
+      end
+
+      expect(expected).to be true
     end
   end
 
   describe '#bottom_merchants_by_invoice_count' do
     it 'returns merchants whose average # of invoices <1 stdev' do
-    avg = sales_analyst.average_invoices_per_merchant
-    stdev = sales_analyst.average_invoices_per_merchant_standard_deviation
+      avg = sales_analyst.average_invoices_per_merchant
+      stdev = sales_analyst.average_invoices_per_merchant_standard_deviation
 
-    # 12334235, 12334601, 12335000, 12335560
-    expect(
-      sales_analyst.bottom_merchants_by_invoice_count.all? {
-      |merchant| sales_analyst.invoices.find_all_by_merchant_id(merchant.id).count < avg - (stdev * 2)
-      }).to be true
+      expected = sales_analyst.bottom_merchants_by_invoice_count.all? do |merchant|
+        sales_analyst.invoices.find_all_by_merchant_id(merchant.id).count < avg - (stdev * 2)
+      end
+    expect(expected).to be true
     end
   end
 
@@ -435,7 +470,7 @@ end
     end
   end
 
-  describe '#invoice_total(1)' do
+  describe '#invoice_total' do
     it 'will return the invoice total for that id' do
 
       expect(sales_analyst.invoice_total(1)).to eq 21067.77
