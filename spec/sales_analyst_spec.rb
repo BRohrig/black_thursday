@@ -18,78 +18,79 @@ RSpec.describe SalesAnalyst do
     expect(sales_analyst).to be_a SalesAnalyst
   end
 
-  # describe '#average_items_per_merchant' do
-  #   it 'gives how many items a merchant has on average' do
-  #     expect(sales_analyst.average_items_per_merchant).to eq 2.88
-  #   end
-  # end
-
-  describe '#average_items_per_merchant' do #MS
+  describe '#average_items_per_merchant' do
     it 'gives how many items a merchant has on average' do
-      s_a = double("sales analyst")
-      allow(s_a).to receive(:average_items_per_merchant).and_return(2.88)
+      expect(sales_analyst.average_items_per_merchant).to eq 2.88
     end
   end
 
-  # describe '#average_items_per_merchant_standard_deviation' do
-  #   it 'returns the stdev of merchant average # of items' do
-  #     expect(sales_analyst.average_items_per_merchant_standard_deviation).to eq 3.26
+  # describe '#average_items_per_merchant' do #MS
+  #   it 'gives how many items a merchant has on average' do
+  #     s_a = double("sales analyst")
+  #     allow(s_a).to receive(:average_items_per_merchant).and_return(2.88)
   #   end
   # end
 
-  describe '#average_items_per_merchant_standard_deviation' do #MS
+  describe '#average_items_per_merchant_standard_deviation' do
     it 'returns the stdev of merchant average # of items' do
-    s_a = double("sales analyst")
-
-    allow(s_a).to receive(:average_items_per_merchant_standard_deviation).and_return(3.26)
-      expect(s_a.average_items_per_merchant_standard_deviation).to eq 3.26
+      expect(sales_analyst.average_items_per_merchant_standard_deviation).to eq 3.26
     end
   end
+
+  # describe '#average_items_per_merchant_standard_deviation' do #MS
+  #   it 'returns the stdev of merchant average # of items' do
+  #   s_a = double("sales analyst")
+
+  #   allow(s_a).to receive(:average_items_per_merchant_standard_deviation).and_return(3.26)
+  #     expect(s_a.average_items_per_merchant_standard_deviation).to eq 3.26
+  #   end
+  # end
 
   describe '#merchants_with_high_item_count' do
     it 'returns merchants whose average # of items is >1 stdev' do
       avg = sales_analyst.average_items_per_merchant
       stdev = sales_analyst.average_items_per_merchant_standard_deviation
 
-      expect(
-        sales_analyst.merchants_with_high_item_count.all? {
-          |merchant| sales_analyst.items.find_all_by_merchant_id(merchant.id).count > avg + stdev 
-          }).to be true
+      expected = sales_analyst.merchants_with_high_item_count.all? do |merchant|
+        sales_analyst.items.find_all_by_merchant_id(merchant.id).count > avg + stdev
+      end
+
+      expect(expected).to be true
     end
   end
 
-  # describe '#average_item_price_for_merchant' do 
-  #   it 'returns a BigDecimal of average item price' do
-      
-  #     expect(sales_analyst.average_item_price_for_merchant(12334105)).to eq 16.66
-  #     expect(sales_analyst.average_item_price_for_merchant(12334257)).to eq BigDecimal(38.33,4)
-  #   end
-  # end
-
-  describe '#average_item_price_for_merchant' do #MS
+  describe '#average_item_price_for_merchant' do 
     it 'returns a BigDecimal of average item price' do
-      s_a = double("sales analyst")
-
-      allow(s_a).to receive(:average_item_price_for_merchant).and_return(16.66)
-    
-      expect(s_a.average_item_price_for_merchant).to eq 16.66
+      
+      expect(sales_analyst.average_item_price_for_merchant(12334105)).to eq 16.66
+      expect(sales_analyst.average_item_price_for_merchant(12334257)).to eq BigDecimal(38.33,4)
     end
   end
 
-  # describe '#average_average_price_per_merchant' do
-  #   it 'returns the average of all merchant average prices' do
-  #     expect(sales_analyst.average_average_price_per_merchant).to eq 350.29
+  # describe '#average_item_price_for_merchant' do #MS
+  #   it 'returns a BigDecimal of average item price' do
+  #     s_a = double("sales analyst")
+
+  #     allow(s_a).to receive(:average_item_price_for_merchant).and_return(16.66)
+    
+  #     expect(s_a.average_item_price_for_merchant).to eq 16.66
   #   end
   # end
 
-  describe '#average_average_price_per_merchant' do #MS
+  describe '#average_average_price_per_merchant' do
     it 'returns the average of all merchant average prices' do
-      s_a = double("sales analyst")
-
-      allow(s_a).to receive(:average_average_price_per_merchant).and_return(350.29)
-      expect(s_a.average_average_price_per_merchant).to eq 350.29
+      expect(sales_analyst.average_average_price_per_merchant).to eq 350.29
     end
   end
+
+  # describe '#average_average_price_per_merchant' do #MS
+  #   it 'returns the average of all merchant average prices' do
+  #     s_a = double("sales analyst")
+
+  #     allow(s_a).to receive(:average_average_price_per_merchant).and_return(350.29)
+  #     expect(s_a.average_average_price_per_merchant).to eq 350.29
+  #   end
+  # end
 
   describe '#golden_items' do
     it 'returns an array of all Item objects with price >2stdev above mean' do
@@ -105,17 +106,18 @@ RSpec.describe SalesAnalyst do
       end
       expect(sales_analyst.top_buyers(5)).to eq(expected)
     end
+
     it 'returns the top 20 buyers by default' do
-      # expected = [
-      #             313,517,148,370,478,
-      #             266,596,802,793,571,
-      #             655,433, 5 ,755,258,
-      #             888,821,274,954,250               
-      #             ].map do |cust| 
-      #   sales_analyst.customers.find_by_id(cust)
-      # end
-      # expect(sales_analyst.top_buyers).to eq(expected)
-      expect(sales_analyst.top_buyers[0]).to eq sales_analyst.customers.find_by_id(313)
+      expected = [
+                  313,517,148,370,478,
+                  266,596,802,793,571,
+                  655,433, 5 ,755,258,
+                  888,821,274,954,250               
+                  ].map do |cust| 
+        sales_analyst.customers.find_by_id(cust)
+      end
+
+      expect(sales_analyst.top_buyers).to eq(expected)
     end
   end
 
@@ -125,6 +127,7 @@ RSpec.describe SalesAnalyst do
 
       expect(sales_analyst.top_merchant_for_customer(1)).to eq(expected)
     end
+
     it 'returns nil if a customer has not spent money yet' do
       expect(sales_analyst.top_merchant_for_customer(77)).to eq nil
     end
@@ -151,7 +154,8 @@ RSpec.describe SalesAnalyst do
     end
   end
 
-  # Helper methods
+  # Iteration 4/5 helper methods
+
   describe '#one_time_buyers_item_tally' do
     it 'returns a hash of quantity purchased by item for one time buyers' do
       expect(sales_analyst.one_time_buyers_item_tally.keys.first).to eq(263512652)
@@ -177,7 +181,6 @@ RSpec.describe SalesAnalyst do
   describe '#find_item_numbers_by_invoice_id' do
     it 'returns an array of every item number on an invoice' do
       expected = sales_analyst.find_item_numbers_by_invoice_id(136)
-      # require 'pry'; binding.pry
 
       expect(expected[0..9].count(263512652)).to eq 10
       expect(expected[10]).to eq 263401045
@@ -204,23 +207,46 @@ RSpec.describe SalesAnalyst do
 
   describe '#customer_invoices' do
     it "returns an array of a customer's invoices" do
+      require 'pry'; binding.pry
       expected = sales_analyst.customer_invoices(1)
       expect(expected).to eq(sales_analyst.invoices.all[0..7])
     end
   end
 
-  # describe '#invoice_revenue' do
+  describe '#customer_paid_invoices' do
+    it 'returns an array of invoices which the customer has paid' do
+      unexpected = sales_analyst.customer_invoices(1)[2]
+
+      expect(sales_analyst.customer_paid_invoices(1)).not_to include(unexpected)
+    end
+  end
+
+  describe '#invoice_revenue' do
+    it 'returns the revenue generated by that invoice' do
+      expect(sales_analyst.invoice_revenue(9)).to eq 0
+      expect(sales_analyst.invoice_revenue(55)).to eq 22338.81
+    end
+  end
+
+  # describe '#invoice_revenue' do #MS
+  #   s_e = double("sales engine")
+
+  #   allow(s_e).to receive(:transactions).and_return(bunch_of_transaction_data)
+  #   expect(sales_analyst.invoice_revenue(9))
+  # end
+
+  # describe '#invoice_revenue' do #MS
   #   it 'returns the revenue generated by that invoice' do
-  #     expect(sales_analyst.invoice_revenue(54)).to eq 3095.31
+  #     s_a = double("sales analyst")
+
+  #     allow(s_a).to receive(:invoice_revenue).and_return(3095.31)
+  #     expect(s_a.invoice_revenue).to eq 3095.31
   #   end
   # end
 
-  describe '#invoice_revenue' do #MS
-    it 'returns the revenue generated by that invoice' do
-      s_a = double("sales analyst")
-
-      allow(s_a).to receive(:invoice_revenue).and_return(3095.31)
-      expect(s_a.invoice_revenue).to eq 3095.31
+  describe '#invoice_value' do
+    it 'returns the revenue of invoice if everything sold' do
+      expect(sales_analyst.invoice_value(9)).to eq(4036.08)
     end
   end
 
@@ -231,35 +257,51 @@ RSpec.describe SalesAnalyst do
     end
   end
 
-  # describe '#average_invoices_per_merchant' do
-  #   it 'gives how many invoices a merchant has on average' do
-  #     expect(sales_analyst.average_invoices_per_merchant).to eq(10.49)
-  #   end
-  # end
+  describe '#items_per_merchant' do
+    it 'returns an array of how many items a merchant has' do
+      expect(sales_analyst.items_per_merchant.count).to eq 475
+      expect(sales_analyst.items_per_merchant.sum).to eq 1367
+    end
+  end
 
-  describe '#average_invoices_per_merchant' do #MS
+  describe '#item_prices' do
+    it 'returns an array of all item prices' do
+      expect(sales_analyst.item_prices.count).to eq 1367
+      expect(sales_analyst.item_prices.sum).to eq 343203.36
+    end
+  end
+
+  # Iteration 2 (Invoices)
+
+  describe '#average_invoices_per_merchant' do
     it 'gives how many invoices a merchant has on average' do
-      s_a = double("sales analyst")
-
-      allow(s_a).to receive(:average_invoices_per_merchant).and_return(10.49)
-      expect(s_a.average_invoices_per_merchant).to eq(10.49)
+      expect(sales_analyst.average_invoices_per_merchant).to eq(10.49)
     end
   end
 
-  # describe '#average_invoices_per_merchant_standard_deviation' do
-  #   it 'returns the stdev of merchant average # of invoices' do
-  #     expect(sales_analyst.average_invoices_per_merchant_standard_deviation). to eq 3.29
+  # describe '#average_invoices_per_merchant' do #MS
+  #   it 'gives how many invoices a merchant has on average' do
+  #     s_a = double("sales analyst")
+
+  #     allow(s_a).to receive(:average_invoices_per_merchant).and_return(10.49)
+  #     expect(s_a.average_invoices_per_merchant).to eq(10.49)
   #   end
   # end
 
-  describe '#average_invoices_per_merchant_standard_deviation' do #MS
+  describe '#average_invoices_per_merchant_standard_deviation' do
     it 'returns the stdev of merchant average # of invoices' do
-      s_a = double("sales analyst")
-
-      allow(s_a).to receive(:average_invoices_per_merchant_standard_deviation).and_return(3.29)
-      expect(s_a.average_invoices_per_merchant_standard_deviation). to eq 3.29
+      expect(sales_analyst.average_invoices_per_merchant_standard_deviation).to eq 3.29
     end
   end
+
+  # describe '#average_invoices_per_merchant_standard_deviation' do #MS
+  #   it 'returns the stdev of merchant average # of invoices' do
+  #     s_a = double("sales analyst")
+
+  #     allow(s_a).to receive(:average_invoices_per_merchant_standard_deviation).and_return(3.29)
+  #     expect(s_a.average_invoices_per_merchant_standard_deviation). to eq 3.29
+  #   end
+  # end
 
   describe '#invoices_per_merchant' do
     it 'returns invoices_per_merchant' do
@@ -272,23 +314,24 @@ RSpec.describe SalesAnalyst do
     it 'returns merchants whose average # of invoices >2 stdev' do
       avg = sales_analyst.average_invoices_per_merchant
       stdev = sales_analyst.average_invoices_per_merchant_standard_deviation
-      expect(
-        sales_analyst.top_merchants_by_invoice_count.all? {
-        |merchant| sales_analyst.invoices.find_all_by_merchant_id(merchant.id).count > avg + (stdev * 2)
-        }).to be true
+
+      expected = sales_analyst.top_merchants_by_invoice_count.all? do |merchant|
+        sales_analyst.invoices.find_all_by_merchant_id(merchant.id).count > avg + (stdev * 2)
+      end
+
+      expect(expected).to be true
     end
   end
 
   describe '#bottom_merchants_by_invoice_count' do
     it 'returns merchants whose average # of invoices <1 stdev' do
-    avg = sales_analyst.average_invoices_per_merchant
-    stdev = sales_analyst.average_invoices_per_merchant_standard_deviation
+      avg = sales_analyst.average_invoices_per_merchant
+      stdev = sales_analyst.average_invoices_per_merchant_standard_deviation
 
-    # 12334235, 12334601, 12335000, 12335560
-    expect(
-      sales_analyst.bottom_merchants_by_invoice_count.all? {
-      |merchant| sales_analyst.invoices.find_all_by_merchant_id(merchant.id).count < avg - (stdev * 2)
-      }).to be true
+      expected = sales_analyst.bottom_merchants_by_invoice_count.all? do |merchant|
+        sales_analyst.invoices.find_all_by_merchant_id(merchant.id).count < avg - (stdev * 2)
+      end
+    expect(expected).to be true
     end
   end
 
@@ -298,19 +341,25 @@ RSpec.describe SalesAnalyst do
     end
   end
 
-  # describe '#average_invoices_per_week_standard_deviation' do
-  #   it 'returns standard deviation of invoices per week' do
+  describe '#average_invoices_per_week_standard_deviation' do
+    it 'returns standard deviation of invoices per week' do
 
-  #     expect(sales_analyst.average_invoices_per_week_standard_deviation).to eq 18.07
+      expect(sales_analyst.average_invoices_per_week_standard_deviation.round(2)).to eq 18.07
+    end
+  end
+
+  # describe '#average_invoices_per_week_standard_deviation' do #MS
+  #   it 'returns standard deviation of invoices per week' do
+  #     s_a = double("sales analyst")
+
+  #     allow(s_a).to receive(:average_invoices_per_week_standard_deviation).and_return(18.07)
+  #     expect(s_a.average_invoices_per_week_standard_deviation).to eq 18.07
   #   end
   # end
 
-  describe '#average_invoices_per_week_standard_deviation' do #MS
-    it 'returns standard deviation of invoices per week' do
-      s_a = double("sales analyst")
-
-      allow(s_a).to receive(:average_invoices_per_week_standard_deviation).and_return(18.07)
-      expect(s_a.average_invoices_per_week_standard_deviation).to eq 18.07
+  describe '#top_invoice_days_count' do
+    it 'returns an array of top day/invoice count pairs' do
+      expect(sales_analyst.top_invoice_days_count).to eq([[:wednesday, 741]])
     end
   end
 
@@ -331,88 +380,72 @@ RSpec.describe SalesAnalyst do
     end
   end
 
-  describe '#invoice_days_count' do #MS
-    it 'returns an array of invoice counts from sunday..saturday' do
-      s_a = double("sales analyst")
+  # describe '#invoice_days_count' do #MS
+  #   it 'returns an array of invoice counts from sunday..saturday' do
+  #     s_a = double("sales analyst")
 
-      x = {
-        sunday:     708,
-        monday:     696,
-        tuesday:    692,
-        wednesday:  741,
-        thursday:   718,
-        friday:     701,
-        saturday:   729
-      }
+  #     x = {
+  #       sunday:     708,
+  #       monday:     696,
+  #       tuesday:    692,
+  #       wednesday:  741,
+  #       thursday:   718,
+  #       friday:     701,
+  #       saturday:   729
+  #     }
 
-      allow(s_a).to receive(:invoice_days_count).and_return(x)
-      expect(s_a.invoice_days_count).to eq x
-    end
-  end
-
-  # describe '#average_invoices_per_day' do
-  #   it 'returns the average invoices per day' do
-
-  #     expect(sales_analyst.average_invoices_per_day).to eq 712.14
+  #     allow(s_a).to receive(:invoice_days_count).and_return(x)
+  #     expect(s_a.invoice_days_count).to eq x
   #   end
   # end
 
-  describe '#average_invoices_per_day' do #MS
+  describe '#average_invoices_per_day' do
     it 'returns the average invoices per day' do
-      s_a = double("sales analyst")
 
-      allow(s_a).to receive(:average_invoices_per_day).and_return(712.14)
-      expect(s_a.average_invoices_per_day).to eq 712.14
+      expect(sales_analyst.average_invoices_per_day).to eq 712.14
     end
   end
 
-  # describe '#invoice_week_sum_diff_square' do
-  #   it 'returns the first part of the formula for standard deviation' do
+  # describe '#average_invoices_per_day' do #MS
+  #   it 'returns the average invoices per day' do
+  #     s_a = double("sales analyst")
 
-  #     expect(sales_analyst.invoice_week_sum_diff_square).to eq 1958.8572
+  #     allow(s_a).to receive(:average_invoices_per_day).and_return(712.14)
+  #     expect(s_a.average_invoices_per_day).to eq 712.14
   #   end
   # end
 
-  describe '#invoice_week_sum_diff_square' do #MS
+  describe '#one_over_standard_dev' do
     it 'returns the first part of the formula for standard deviation' do
-      s_a = double("sales analyst")
 
-      allow(s_a).to receive(:invoice_week_sum_diff_square).and_return(1958.8572)
-      expect(s_a.invoice_week_sum_diff_square).to eq 1958.8572
-    end
-  end
-
-#   describe '#one_over_standard_dev' do
-#     it 'returns the first part of the formula for standard deviation' do
-
-#     expect(sales_analyst.one_over_standard_dev).to eq 730.21
-#   end
-# end
-
-describe '#one_over_standard_dev' do #MS
-    it 'returns the first part of the formula for standard deviation' do
-      s_a = double("sales analyst")
-
-      allow(s_a).to receive(:one_over_standard_dev).and_return(730.21)
-    expect(s_a.one_over_standard_dev).to eq 730.21
+    expect(sales_analyst.one_over_standard_dev.round(2)).to eq 730.21
   end
 end
 
-  # describe '#top_days_by_invoice_count' do
-  #   it 'return an array of the days at least one standard deviation over the mean' do
+# describe '#one_over_standard_dev' do #MS
+#     it 'returns the first part of the formula for standard deviation' do
+#       s_a = double("sales analyst")
 
-  #     expect(sales_analyst.top_days_by_invoice_count).to eq ["Wednesday"]
-  #   end
-  # end
+#       allow(s_a).to receive(:one_over_standard_dev).and_return(730.21)
+#     expect(s_a.one_over_standard_dev).to eq 730.21
+#   end
+# end
 
-  describe '#top_days_by_invoice_count' do #MS
+  describe '#top_days_by_invoice_count' do
     it 'return an array of the days at least one standard deviation over the mean' do
-      s_a = double("sales analyst")
 
-      allow(s_a).to receive(:top_days_by_invoice_count).and_return(["Wednesday"])
-      expect(s_a.top_days_by_invoice_count).to eq ["Wednesday"]
+      expect(sales_analyst.top_days_by_invoice_count).to eq ["Wednesday"]
     end
   end
+
+  # describe '#top_days_by_invoice_count' do #MS
+  #   it 'return an array of the days at least one standard deviation over the mean' do
+  #     s_a = double("sales analyst")
+
+  #     allow(s_a).to receive(:top_days_by_invoice_count).and_return(["Wednesday"])
+  #     expect(s_a.top_days_by_invoice_count).to eq ["Wednesday"]
+  #   end
+  # end
 
   describe '#find_transactions_by_invoice_id(invoice_id)' do
     it 'returns all the transactions for an invoice' do
@@ -437,7 +470,7 @@ end
     end
   end
 
-  describe '#invoice_total(1)' do
+  describe '#invoice_total' do
     it 'will return the invoice total for that id' do
 
       expect(sales_analyst.invoice_total(1)).to eq 21067.77
