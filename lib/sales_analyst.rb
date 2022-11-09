@@ -152,7 +152,7 @@ class SalesAnalyst
     end
   end
 
-  def invoice_revenue(invoice_id)
+  def invoice_total(invoice_id)
     return 0 if !invoice_paid_in_full?(invoice_id)
     invoice_items_by_invoice_id(invoice_id).sum do |invoice_item|
       invoice_item.quantity * invoice_item.unit_price
@@ -293,7 +293,7 @@ class SalesAnalyst
   def total_revenue_by_date(date)
     invoice_date = find_invoice_by_date(date)
     invoice_date.map do |invoice|
-      invoice_revenue(invoice.id)
+      invoice_total(invoice.id)
     end.inject(:+)
   end
 
@@ -308,7 +308,7 @@ class SalesAnalyst
     x = @invoices.find_all_by_merchant_id(merchant_id)
     x.each do |invoice|
       if invoice_paid_in_full?(invoice.id)
-        total += invoice_revenue(invoice.id)
+        total += invoice_total(invoice.id)
       end
     end
     total.round(2)
