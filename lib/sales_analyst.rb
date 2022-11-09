@@ -448,23 +448,25 @@ class SalesAnalyst
   end
   
     
-  def most_sold_item_for_merchant(merchant_id)
-    x = find_ii_by_most_sold_item(merchant_id)
-    items.find_by_id(x.item_id)
-  end
+  # def most_sold_item_for_merchant(merchant_id)
+  #   x = find_ii_by_most_sold_item(merchant_id)
+  #   items.find_by_id(x.item_id)
+  # end
 
-  def successful_invoice(merchant_id)
-    invoices_by_merchant(merchant_id).find_all do |invoice|
-      invoice_paid_in_full?(invoice.id)
-    end
-  end
+  # def successful_invoice(merchant_id)
+  #   invoices_by_merchant(merchant_id).find_all do |invoice|
+  #     invoice_paid_in_full?(invoice.id)
+  #   end
+  # end
 
-  def find_ii_by_most_sold_item(merchant_id)
-    successful_invoice(merchant_id)
-    invoice_items.all.max_by do |invoice_item|
-      invoice_item.quantity
-    end
-  end
+  # def find_ii_by_most_sold_item(merchant_id)
+  #   successful_invoice(merchant_id)
+  #   invoice_items.all.max_by do |invoice_item|
+  #     invoice_item.quantity
+  #   end
+  # end
+
+  # 
 
   def paid_invoice_items_by_merchant(merchant_id)
     paid_invoices = invoice_items_by_merchant(merchant_id).find_all do |invoice_item|
