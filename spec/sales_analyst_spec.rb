@@ -543,9 +543,7 @@ end
 
   describe '#most_sold_item_for_merchant(merchant_id)' do
     it 'will return the most sold item for the merchant based on merchant id' do
-      binding.pry
-      
-      expect(sales_analyst.most_sold_item_for_merchant(12334771)).to eq sales_analyst.items.find_by_id(263557908)
+      expect(sales_analyst.most_sold_item_for_merchant(12336362)).to eq sales_analyst.items.find_by_id(263557908)
     end
   end
 end
