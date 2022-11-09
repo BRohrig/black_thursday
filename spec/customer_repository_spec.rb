@@ -38,6 +38,7 @@ RSpec.describe CustomerRepository do
     cust_repo.all.push(cust2)
     
     expect(cust_repo.find_all_by_first_name("Jimmy")).to eq([cust1])
+    expect(cust_repo.find_all_by_first_name("jIMMY")).to eq([cust1])
     expect(cust_repo.find_all_by_first_name("Jane")).to eq([cust2])
     expect(cust_repo.find_all_by_first_name("Bob")).to eq([])
   end
@@ -47,6 +48,7 @@ RSpec.describe CustomerRepository do
     cust_repo.all.push(cust2)
 
     expect(cust_repo.find_all_by_last_name("John")).to eq([cust1, cust2])
+    expect(cust_repo.find_all_by_last_name("joHN")).to eq([cust1, cust2])
     expect(cust_repo.find_all_by_last_name("Billy")). to eq([])
   end
 
