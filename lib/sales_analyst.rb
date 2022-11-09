@@ -153,12 +153,9 @@ class SalesAnalyst
   end
 
   def invoice_revenue(invoice_id)
-    if invoice_paid_in_full?(invoice_id)
-      invoice_items_by_invoice_id(invoice_id).sum do |invoice_item|
-        invoice_item.quantity * invoice_item.unit_price
-      end
-    else
-      0
+    return 0 if !invoice_paid_in_full?(invoice_id)
+    invoice_items_by_invoice_id(invoice_id).sum do |invoice_item|
+      invoice_item.quantity * invoice_item.unit_price
     end
   end
 
@@ -186,7 +183,7 @@ class SalesAnalyst
     end
   end
 
-  # Invoices
+  # Iteration 2 (Invoices)
 
   def average_invoices_per_merchant
     avg(invoices_per_merchant).to_f.round(2)
@@ -222,22 +219,15 @@ class SalesAnalyst
 
   def invoices_days_of_week
     @invoices.all.map do |invoice|
-    invoice.created_at.wday
+      invoice.created_at.wday
     end
   end
 
-  # def invoice_days_count
-  #   # [708, 696, 692, 741, 718, 701, 729]
-  #   days_count = []
-  #   days_count << invoices_days_of_week.count(0)
-  #   days_count << invoices_days_of_week.count(1)
-  #   days_count << invoices_days_of_week.count(2)
-  #   days_count << invoices_days_of_week.count(3)
-  #   days_count << invoices_days_of_week.count(4)
-  #   days_count << invoices_days_of_week.count(5)
-  #   days_count << invoices_days_of_week.count(6)
-  #   days_count
-  # end
+  def top_invoice_days_count
+    invoice_days_count.find_all do |day, count|
+      count > one_over_standard_dev
+    end
+  end
 
   def invoice_days_count
     {
@@ -252,11 +242,11 @@ class SalesAnalyst
   end
 
   def average_invoices_per_day
-  (invoice_days_count.values.sum / 7.0).round(2)
+    (invoice_days_count.values.sum / 7.0).round(2)
   end
 
   def average_invoices_per_week_standard_deviation
-    Math.sqrt(invoice_week_sum_diff_square / (invoice_days_count.keys.length - 1)).round(2)
+    stdev(invoice_days_count.values)
   end
 
   def invoice_week_sum_diff_square
@@ -270,35 +260,12 @@ class SalesAnalyst
   end
 
   def top_days_by_invoice_count
-    days_of_week = []
-    hash = invoice_days_count
-    hash.each do |day, count|
-      if count > one_over_standard_dev
-         days_of_week << day.to_s.capitalize
-      end
+    top_days = []
+    top_invoice_days_count.each do |day|
+      top_days << day[0].to_s.capitalize
     end
-    days_of_week
+    top_days
   end
-
-  # def top_days_by_invoice_count # refactor with group_by, possibly refactor invoice_days_count to hash?
-  #   days_of_week = []
-  #   array = invoice_days_count
-  #   hash = {
-  #     sunday:     array[0],
-  #     monday:     array[1],
-  #     tuesday:    array[2],
-  #     wednesday:  array[3],
-  #     thursday:   array[4],
-  #     friday:     array[5],
-  #     saturday:   array[6]
-  #           }
-  #   hash.each do |day, count|
-  #     if count > one_over_standard_dev
-  #        days_of_week << day.to_s.capitalize
-  #     end
-  #   end
-  #   days_of_week
-  # end
 
   def find_transactions_by_invoice_id(invoice_id) # there can be multiple transactions per invoice
     transactions.all.find_all do |transaction|
@@ -317,31 +284,20 @@ class SalesAnalyst
     invoice_item.invoice_id == invoice_id
     end
   end
-
-  def invoice_total(invoice_id)
-    ii = find_invoice_item_by_invoice_id(invoice_id)
-    ii.collect do |i|
-      if invoice_paid_in_full?(invoice_id) 
-      i.quantity.to_i * i.unit_price
-      else
-        0
-      end
-    end.sum
-  end
   
   def invoice_status(status)
-  invoice_count = invoices.all.select { |invoice| invoice.status == status }
-  ((invoice_count.count).to_f / (invoices.all.count) * 100).round(2)
+    invoice_count = invoices.all.select { |invoice| invoice.status == status }
+    ((invoice_count.count).to_f / (invoices.all.count) * 100).round(2)
   end
 
   def total_revenue_by_date(date)
-    invoice_date = find_i_by_date(date)
+    invoice_date = find_invoice_by_date(date)
     invoice_date.map do |invoice|
-      invoice_total(invoice.id)
+      invoice_revenue(invoice.id)
     end.inject(:+)
   end
 
-  def find_i_by_date(date)
+  def find_invoice_by_date(date)
     invoices.all.find_all do |invoice|
       invoice.created_at.to_date === date.to_date
     end
@@ -352,21 +308,11 @@ class SalesAnalyst
     x = @invoices.find_all_by_merchant_id(merchant_id)
     x.each do |invoice|
       if invoice_paid_in_full?(invoice.id)
-        total += invoice_total(invoice.id)
+        total += invoice_revenue(invoice.id)
       end
     end
     total.round(2)
   end
-
-  # def total_merchant_revenue(merchant_id) #refactor?
-  #   # total = 0 
-  #   x = @invoices.find_all_by_merchant_id(merchant_id)
-  #   total = x.sum do |invoice|
-  #     binding.pry
-  #       invoice_total(invoice.id) if invoice_paid_in_full?(invoice.id)
-  #   end
-  #   total.round(2)
-  # end
 
   def top_revenue_earners(rank = 20)
     merchants.all.max_by(rank) do |merchant|
@@ -375,22 +321,20 @@ class SalesAnalyst
   end
 
   def pending_invoices
-      pending_invoices = invoices.all.select do |invoice|
-         (invoice.status != :shipped || :returned) && !invoice_paid_in_full?(invoice.id)
-      end.uniq
+    pending_invoices = invoices.all.select do |invoice|
+        (invoice.status != :shipped || :returned) && !invoice_paid_in_full?(invoice.id)
+    end.uniq
     pending_invoices
   end
 
   def find_merchant_ids_with_pending_invoices
-    pi = pending_invoices
-    pi.map do |invoice|
+    pending_invoices.map do |invoice|
       invoice.merchant_id
-      end.uniq
+    end.uniq
   end
 
   def merchants_with_pending_invoices
-    merchants_with_pi = find_merchant_ids_with_pending_invoices
-    merchants_with_pi.map do |merchant_id|
+    find_merchant_ids_with_pending_invoices.map do |merchant_id|
       @merchants.find_by_id(merchant_id)
     end
   end  
