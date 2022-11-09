@@ -19,6 +19,14 @@ RSpec.describe InvoiceRepository do
     :created_at  => Time.now,
     :updated_at  => Time.now,
   })}
+  let(:invoice) {Invoice.new({
+    :id          => 8,
+    :customer_id => 8,
+    :merchant_id => 9,
+    :status      => "shipped",
+    :created_at  => Time.now,
+    :updated_at  => Time.now,
+  })}
 
   it 'is an instance of a #invoice_repository' do
     expect(invoice_repository).to be_a(InvoiceRepository)
@@ -26,7 +34,11 @@ RSpec.describe InvoiceRepository do
 
   it 'has a method to find_all_by_customer_id' do
     invoice_repository.all << invoice
+    invoice_repository.all << invoice2
+    invoice_repository.all << invoice3
+
     expect(invoice_repository.find_all_by_customer_id(7)).to eq([invoice])
+    expect(invoice_repository.find_all_by_customer_id(8)).to eq([invoice2, invoice3])
     expect(invoice_repository.find_all_by_customer_id(2)).to eq []
   end
 
@@ -34,7 +46,7 @@ RSpec.describe InvoiceRepository do
     invoice_repository.all << invoice
     invoice_repository.all << invoice2
     expect(invoice_repository.find_all_by_merchant_id(8)).to eq([invoice])
-    expect(invoice_repository.find_all_by_merchant_id(9)).to eq([invoice2])
+    expect(invoice_repository.find_all_by_merchant_id(9)).to eq([invoice2, invoice3])
     expect(invoice_repository.find_all_by_merchant_id(1)).to eq []
   end
 

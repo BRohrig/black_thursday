@@ -2,7 +2,8 @@ require 'time'
 
 class Merchant
   attr_accessor :name
-  attr_reader :id, :created_at
+  attr_reader :id, 
+              :created_at
 
   def initialize(merchant_info)
     @id = merchant_info[:id].to_i
