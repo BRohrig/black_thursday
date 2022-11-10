@@ -21,7 +21,7 @@ If the invoice has been paid in full, we then use max_by to enumerate over the c
 
 * Describe the best choice enumerables you used in your project. Please include file names and line numbers.
 
-  lines 478-485 ends up using a max_by enumerable to get the best item for merchant based on how much sold and how much the price was. Essentially max_by is allowing us to get the item that has the most revenue generated for the merchant.
+  lines 422-429 ends up using a max_by enumerable to get the best item for merchant based on how much sold and how much the price was. Essentially max_by is allowing us to get the item that has the most revenue generated for the merchant.
 
 * Tell us about a module or superclass which helped you re-use code across repository classes. Why did you choose to use a superclass and/or a module?
 
@@ -29,8 +29,15 @@ If the invoice has been paid in full, we then use max_by to enumerate over the c
 
 * Tell us about 1) a unit test and 2) an integration test that you are particularly proud of. Please include file name(s) and line number(s).
 
-  For integrated a test in sales_analyst_spec lines 530-533, we have to be able to test out #sales_anlayst.most_sold_item_for_merchant against #sales_analyst.items.find_by_id, reaching into another class for that find_by_id method. For a unit test, in sales_analyst_spec, #average_item_price_for_merchant tested on lines 61-65, we are just testing the sales analyst method.
+For a unit test, in sales_analyst_spec, #average_item_price_for_merchant tested on lines 62-68, we are just testing the sales analyst method. For integrated a test in sales_analyst_spec lines 555-559, we have to be able to test out #sales_anlayst.most_sold_item_for_merchant against #sales_analyst.items.find_by_id, reaching into another class for that find_by_id method. 
 
 * Is there anything else you would like instructors to know?
 
   We found value in learning how to effectively communicate and split up the work between a small group.
+
+## Questions
+
+1. Anthony: When is the appropriate time to use mocks & stubs?
+1. Alastair: Why when moving tests from the reposable to the specific spec file are simplecov numbers not aligning? For example, when running simplecov with tests in reposable 97.2% and then running simplecov with tests in specific spec files outcome: 97.15% [percentages are an example, not literal]
+1. Drew: Would there have been a good use case for superclasses in this project?
+1. Brady: Is there a limit to the number of helper methods that are preferred? (i.e. the last 2 methods in sales_analyst)
